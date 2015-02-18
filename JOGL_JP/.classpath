@@ -4,5 +4,6 @@
 	<classpathentry kind="src" path="recources"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/JOGL_LIBS"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/la4j"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
