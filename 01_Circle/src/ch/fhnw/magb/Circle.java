@@ -24,6 +24,15 @@ public class Circle extends GLEventListenerAdapter {
 	 * @param points Number of points to use 
 	 */
 	public static void drawCircle(GL2GL3 gl, GLBufferBase buffer, float radius, boolean fill, int points){
+		if(fill){ buffer.addVertex(0, 0, 0); }
+		//Add points
+		float step = (float)((2*Math.PI) / points);
+		for(float i = 0; i <= 2 * Math.PI; i += step){
+			buffer.addVertex((float)(radius * Math.cos(i)), (float)(radius * Math.sin(i)), 0f);
+		}
+		//Draw
+	    buffer.copy(gl);
+	    buffer.draw(gl, fill ? GL2GL3.GL_TRIANGLE_FAN : GL2GL3.GL_LINE_LOOP);
 	}
 
 	@Override
@@ -55,11 +64,12 @@ public class Circle extends GLEventListenerAdapter {
 		gl.glClear(GL2GL3.GL_COLOR_BUFFER_BIT | GL2GL3.GL_DEPTH_BUFFER_BIT);
 	    buffer.reset();
 	    buffer.setColor(0, 1, 0, 1);
-	    buffer.addVertex(-0.5f,-0.5f,0);
-	    buffer.addVertex(0.5f,-0.5f,0);
-	    buffer.addVertex(0,0.5f,0);
-	    buffer.copy(gl);
-	    buffer.draw(gl, GL2GL3.GL_TRIANGLES);
+//	    buffer.addVertex(-0.5f,-0.5f,0);
+//	    buffer.addVertex(0.5f,-0.5f,0);
+//	    buffer.addVertex(0,0.5f,0);
+//	    buffer.copy(gl);
+//	    buffer.draw(gl, GL2GL3.GL_TRIANGLES);
+	    drawCircle(gl, buffer, 0.5f, false, 55);
 	}
 
 	public static void main(String[] args) {
