@@ -17,6 +17,17 @@ public abstract class GLBufferBase {
 
 	public abstract int getBufferSize();
 
+	/**
+	 * Copy of the current buffer to OpenGL.
+	 * @param gl
+	 */
+	public abstract void copy(GL2GL3 gl);
+	public abstract void draw(GL2GL3 gl, int type);
+	/**
+	 * Can be called before adding a completely new set of vertices to the buffer.
+	 */
+	public abstract void reset();
+	public abstract void addVertex(float... v);
 	public void setup(GL2GL3 gl, GLFrame glFrame){
 		//Vertex Array Object
 		int[] tmp = new int[1];
@@ -30,4 +41,13 @@ public abstract class GLBufferBase {
 		//Allocate memory
 		gl.glBufferData(GL2GL3.GL_ARRAY_BUFFER, getBufferSize(), null, GL2GL3.GL_STATIC_DRAW);
 	}
+
+	public int getVaoId() {
+		return vaoId;
+	}
+
+	public int getVertexBufferId() {
+		return vertexBufferId;
+	}
+
 }
