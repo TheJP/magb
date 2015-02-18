@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
+	<classpathentry excluding="resources/|resources/|recources/|resources/" kind="src" path="src"/>
+	<classpathentry kind="src" path="recources"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/JOGL_LIBS"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/JOGL_LIBS"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
