@@ -6,33 +6,23 @@ import javax.media.opengl.GLAutoDrawable;
 
 public class Circle extends GLEventListenerAdapter {
 
+	/**
+	 * Buffer, to which the circle is drawn.
+	 */
 	private DefaultGLBuffer buffer = new DefaultGLBuffer();
+	/**
+	 * Displayed frame.
+	 */
 	private GLFrame frame;
+	/**
+	 * Variables which are used to setup the projection.
+	 */
 	private float left=-1, right=1, top, bottom, near=-100, far=100;
 
 	public Circle(GLFrame frame) {
 		frame.setStdReshape(false);
 		frame.setBuffer(buffer);
 		this.frame = frame;
-	}
-
-	/**
-	 * Draws a circle at the current center.
-	 * @param gl OpenGl context
-	 * @param radius Radius of the circle
-	 * @param fill Filled or only border
-	 * @param points Number of points to use 
-	 */
-	public static void drawCircle(GL2GL3 gl, GLBufferBase buffer, float radius, boolean fill, int points){
-		if(fill){ buffer.addVertex(0, 0, 0); }
-		//Add points
-		float step = (float)((2*Math.PI) / points);
-		for(float i = 0; i <= 2 * Math.PI; i += step){
-			buffer.addVertex((float)(radius * Math.cos(i)), (float)(radius * Math.sin(i)), 0f);
-		}
-		//Draw
-	    buffer.copy(gl);
-	    buffer.draw(gl, fill ? GL2GL3.GL_TRIANGLE_FAN : GL2GL3.GL_LINE_LOOP);
 	}
 
 	@Override
@@ -43,19 +33,7 @@ public class Circle extends GLEventListenerAdapter {
 		float aspect = (float)height/width;
 		bottom = aspect * left;
 		top = aspect * right;
-		setProjection(gl, left, right, bottom, top, near, far);
-	}
-
-    public void setProjection(GL2GL3 gl, float left, float right, float bottom, float top, float near, float far) {
-		float m00 = 2.0f / (right-left);;
-		float m11 = 2.0f / (top-bottom);
-		float m22 = -2.0f / (far-near);
-		float m03 = - (right + left) / (right-left);
-		float m13 = - (top + bottom) / (top-bottom);
-		float m23 = - (far + near) / (far-near);
-		float m33 = 1;
-		float[] projMatrix = {m00, 0, 0, 0, 0, m11, 0, 0, 0, 0, m22, 0, m03, m13, m23, m33 };
-		gl.glUniformMatrix4fv(frame.getProjMatrixLoc(), 1, false, projMatrix, 0);
+		frame.setProjection(gl, left, right, bottom, top, near, far);
 	}
 
 	@Override
@@ -63,13 +41,10 @@ public class Circle extends GLEventListenerAdapter {
 		GL2GL3 gl = drawable.getGL().getGL2GL3();
 		gl.glClear(GL2GL3.GL_COLOR_BUFFER_BIT | GL2GL3.GL_DEPTH_BUFFER_BIT);
 	    buffer.reset();
+	    buffer.setColor(0, 0.5f, 0, 1);
+	    Utility.drawCircle(gl, buffer, 0.5f, false, 55);
 	    buffer.setColor(0, 1, 0, 1);
-//	    buffer.addVertex(-0.5f,-0.5f,0);
-//	    buffer.addVertex(0.5f,-0.5f,0);
-//	    buffer.addVertex(0,0.5f,0);
-//	    buffer.copy(gl);
-//	    buffer.draw(gl, GL2GL3.GL_TRIANGLES);
-	    drawCircle(gl, buffer, 0.5f, false, 55);
+	    Utility.drawCircle(gl, buffer, 0.5f, true, 55);
 	}
 
 	public static void main(String[] args) {

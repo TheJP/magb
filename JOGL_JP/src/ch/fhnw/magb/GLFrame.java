@@ -14,6 +14,7 @@ import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 import javax.swing.JFrame;
 
+import org.la4j.Matrix;
 import org.la4j.matrix.DenseMatrix;
 
 public class GLFrame extends JFrame implements GLEventListener {
@@ -98,6 +99,26 @@ public class GLFrame extends JFrame implements GLEventListener {
 	public void start(){
 		add(canvas);
 		setVisible(true);
+	}
+
+	/**
+	 * Sets projection cuboid. The parameters define the shape of the cuboid-
+	 * @param gl OpenGl context.
+	 * @param left
+	 * @param right
+	 * @param bottom
+	 * @param top
+	 * @param near
+	 * @param far
+	 */
+    public void setProjection(GL2GL3 gl, float left, float right, float bottom, float top, float near, float far) {
+    	Matrix m = Matrix.from2DArray(new double[][]{
+    		{2.0f / (right-left),                   0,                  0, - (right + left) / (right-left)},
+    		{                  0, 2.0f / (top-bottom),                  0, - (top + bottom) / (top-bottom)},
+    		{                  0,                   0, -2.0f / (far-near),     - (far + near) / (far-near)},
+    		{                  0,                   0,                  0,                               1}
+    	});
+		gl.glUniformMatrix4fv(getProjMatrixLoc(), 1, false, Utility.matrixToArray(m), 0);
 	}
 
 	/**

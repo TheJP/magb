@@ -1,5 +1,7 @@
 package ch.fhnw.magb;
 
+import javax.media.opengl.GL2GL3;
+
 import org.la4j.Matrix;
 
 /**
@@ -22,6 +24,25 @@ public class Utility {
 			}
 		}
 		return result;
+	}
+
+	/**
+	 * Draws a circle at the current center using the current color.
+	 * @param gl OpenGl context
+	 * @param radius Radius of the circle
+	 * @param fill Filled or only border
+	 * @param points Number of points to use 
+	 */
+	public static void drawCircle(GL2GL3 gl, GLBufferBase buffer, float radius, boolean fill, int points){
+		if(fill){ buffer.addVertex(0, 0, 0); }
+		//Add points
+		float step = (float)((2*Math.PI) / points);
+		for(float i = 0; i <= 2 * Math.PI; i += step){
+			buffer.addVertex((float)(radius * Math.cos(i)), (float)(radius * Math.sin(i)), 0f);
+		}
+		//Draw
+	    buffer.copy(gl);
+	    buffer.draw(gl, fill ? GL2GL3.GL_TRIANGLE_FAN : GL2GL3.GL_LINE_LOOP);
 	}
 
 }
