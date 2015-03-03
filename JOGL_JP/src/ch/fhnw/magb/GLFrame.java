@@ -21,6 +21,12 @@ public class GLFrame extends JFrame implements GLEventListener {
 
 	private static final long serialVersionUID = 2228610266884853555L;
 
+	public static enum ReshapeType {
+		NONE,
+		STRETCH,
+		PROPORTIONAL
+	}
+
 	//** Standard constants **//
 
 	public final static int STD_WIDTH = 800;
@@ -53,7 +59,7 @@ public class GLFrame extends JFrame implements GLEventListener {
 	/**
 	 * Defines if the standard reshape should be used.
 	 */
-	private boolean stdReshape = true;
+	private ReshapeType stdReshape = ReshapeType.PROPORTIONAL;
 	/**
 	 * Id of the currently used shader program.
 	 */
@@ -62,6 +68,15 @@ public class GLFrame extends JFrame implements GLEventListener {
 	 * Buffer of vertex data.
 	 */
 	private GLBufferBase buffer = new DefaultGLBuffer();
+
+	//** Projection cuboid (These are the default values) **//
+	private float left = -1;
+	private float right = 1;
+	private float near = -100;
+	private float far = 100;
+	private float r = 10;
+	private float elevation = 10;
+	private float azimut=45;
 
 	//** Shader variable ids **//
 
@@ -120,6 +135,28 @@ public class GLFrame extends JFrame implements GLEventListener {
     	});
 		gl.glUniformMatrix4fv(getProjMatrixLoc(), 1, false, Utility.matrixToArray(m), 0);
 	}
+
+    /**
+     * Set camera system matrix.
+     * @param gl OpenGl context.
+     * @param r Distance of the camera to O.
+     * @param elevation Elevation angel in degrees.
+     * @param azimut Azimut angle in degrees.
+     */
+    public void setCameraSystem(GL2GL3 gl, float r, float elevation, float azimut){
+    	float toRad = (float)(Math.PI/180);
+    	float c = (float)Math.cos(toRad*elevation);
+    	float s = (float)Math.sin(toRad*elevation);
+    	float cc = (float)Math.cos(toRad*azimut);
+    	float ss = (float)Math.sin(toRad*azimut);
+    	Matrix m = Matrix.from2DArray(new double[][]{
+    		{  cc, -s*ss, c*ss, 0 },
+    		{   0,     c,    s, 0 },
+    		{ -ss, -s*cc, c*cc, 0 },
+    		{   0,     0,   -r, 1 },	
+    	});
+    	gl.glUniformMatrix4fv(viewMatrixLoc, 1, false, Utility.matrixToArray(m), 0);
+    }
 
 	/**
 	 * Creates shader and compiles it using the filename.
@@ -209,10 +246,19 @@ public class GLFrame extends JFrame implements GLEventListener {
 
 	@Override
 	public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-		if(stdReshape){
-			GL2GL3 gl = drawable.getGL().getGL2GL3();
-			//Set the viewport to be the entire window
-			gl.glViewport(0, 0, width, height);
+		GL2GL3 gl = drawable.getGL().getGL2GL3();
+		//Set the viewport to be the entire window
+		gl.glViewport(0, 0, width, height);
+		switch (stdReshape) {
+			case PROPORTIONAL:
+				float top, bottom, left=-1, right=1, near=-100, far=100;
+				float aspect = (float)height/width;
+				bottom = aspect * left;
+				top = aspect * right;
+				setProjection(gl, left, right, bottom, top, near, far);
+				break;
+			default:
+				break;
 		}
 	}
 
@@ -298,7 +344,7 @@ public class GLFrame extends JFrame implements GLEventListener {
 	 * Defines if the standard reshape should be used.
 	 * @return
 	 */
-	public boolean isStdReshape() {
+	public ReshapeType isStdReshape() {
 		return stdReshape;
 	}
 
@@ -306,7 +352,63 @@ public class GLFrame extends JFrame implements GLEventListener {
 	 * Defines if the standard reshape should be used.
 	 * @param stdReshape
 	 */
-	public void setStdReshape(boolean stdReshape) {
+	public void setStdReshape(ReshapeType stdReshape) {
 		this.stdReshape = stdReshape;
+	}
+
+	public float getLeft() {
+		return left;
+	}
+
+	public void setLeft(float left) {
+		this.left = left;
+	}
+
+	public float getRight() {
+		return right;
+	}
+
+	public void setRight(float right) {
+		this.right = right;
+	}
+
+	public float getNear() {
+		return near;
+	}
+
+	public void setNear(float near) {
+		this.near = near;
+	}
+
+	public float getFar() {
+		return far;
+	}
+
+	public void setFar(float far) {
+		this.far = far;
+	}
+
+	public float getR() {
+		return r;
+	}
+
+	public void setR(float r) {
+		this.r = r;
+	}
+
+	public float getElevation() {
+		return elevation;
+	}
+
+	public void setElevation(float elevation) {
+		this.elevation = elevation;
+	}
+
+	public float getAzimut() {
+		return azimut;
+	}
+
+	public void setAzimut(float azimut) {
+		this.azimut = azimut;
 	}
 }

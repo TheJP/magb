@@ -37,7 +37,7 @@ public class Utility {
 		if(fill){ buffer.addVertex(0, 0, 0); }
 		//Add points
 		float step = (float)((2*Math.PI) / points);
-		for(float i = 0; i <= 2 * Math.PI; i += step){
+		for(float i = 0; i - step <= 2 * Math.PI; i += step){
 			buffer.addVertex((float)(radius * Math.cos(i)), (float)(radius * Math.sin(i)), 0f);
 		}
 		//Draw
