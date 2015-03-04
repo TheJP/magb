@@ -26,14 +26,19 @@ public class Ikosaeder extends GLEventListenerAdapter {
 		frame.setCameraSystem(gl, frame.getR(), frame.getElevation(), frame.getAzimut());
 	    buffer.reset();
 	    buffer.setColor(0, 0.5f, 0, 1);
-	    Utility.drawCircle(gl, buffer, 0.5f, false, 55);
-	    buffer.setColor(0, 1, 0, 1);
-	    Utility.drawCircle(gl, buffer, 0.5f, true, 55);
+	    Utility.drawIkosaeder(gl, buffer);
 	}
 
 	public static void main(String[] args) {
 		//Init frame
 		GLFrame frame = new GLFrame("Circle");
+		/*frame.setR(10);
+		frame.setElevation(14);
+		frame.setAzimut(10);
+		frame.setLeft(-3);
+		frame.setRight(3);
+		frame.setNear(-10);
+		frame.setFar(100);*/
 		//Create circle and add listener
 		Ikosaeder circle = new Ikosaeder(frame);
 		frame.addGLEventListener(circle);
