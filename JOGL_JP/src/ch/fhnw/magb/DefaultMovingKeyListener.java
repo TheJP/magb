@@ -5,6 +5,9 @@ import java.awt.event.KeyEvent;
 
 public class DefaultMovingKeyListener extends KeyAdapter {
 
+	/**
+	 * Internal reference to the GLFrame.
+	 */
 	private GLFrame frame;
 
 	public DefaultMovingKeyListener(GLFrame frame) {
@@ -13,18 +16,19 @@ public class DefaultMovingKeyListener extends KeyAdapter {
 
 	@Override
 	public void keyPressed(KeyEvent e) {
+		Camera camera = frame.getCamera();
 		switch (e.getKeyCode()) {
 		case KeyEvent.VK_UP:
-			frame.setElevation(frame.getElevation() + 1);
+			camera.setElevation(camera.getElevation() + 1);
 			break;
 		case KeyEvent.VK_DOWN:
-			frame.setElevation(frame.getElevation() - 1);
+			camera.setElevation(camera.getElevation() - 1);
 			break;
 		case KeyEvent.VK_LEFT:
-			frame.setAzimut(frame.getAzimut() + 1);
+			camera.setAzimut(camera.getAzimut() + 1);
 			break;
 		case KeyEvent.VK_RIGHT:
-			frame.setAzimut(frame.getAzimut() - 1);
+			camera.setAzimut(camera.getAzimut() - 1);
 			break;
 		default:
 			break;

@@ -15,10 +15,6 @@ public class Ikosaeder extends GLEventListenerAdapter {
 	 */
 	private DefaultGLBuffer buffer = new DefaultGLBuffer();
 	/**
-	 * Reference to the used GLFrame.
-	 */
-	private GLFrame frame;
-	/**
 	 * Stores the direction in which the sun is. (Directional light)
 	 */
 	private Vector toLight = V.v(-1, 2, 1);
@@ -26,14 +22,12 @@ public class Ikosaeder extends GLEventListenerAdapter {
 	public Ikosaeder(GLFrame frame) {
 		frame.setStdReshape(ReshapeType.PROPORTIONAL);
 		frame.setBuffer(buffer);
-		this.frame = frame;
 	}
 
 	@Override
 	public void display(GLAutoDrawable drawable) {
 		GL2GL3 gl = drawable.getGL().getGL2GL3();
 		gl.glClear(GL2GL3.GL_COLOR_BUFFER_BIT | GL2GL3.GL_DEPTH_BUFFER_BIT);
-		frame.setCameraSystem(gl, frame.getR(), frame.getElevation(), frame.getAzimut());
 	    buffer.reset();
 	    buffer.setColor(0, 1, 0, 1);
 	    Utility.drawIkosaeder(gl, buffer, toLight);
@@ -42,13 +36,8 @@ public class Ikosaeder extends GLEventListenerAdapter {
 	public static void main(String[] args) {
 		//Init frame
 		GLFrame frame = new GLFrame("Ikosaeder");
-		frame.setR(10);
-		frame.setElevation(14);
-		frame.setAzimut(10);
-		frame.setLeft(-3);
-		frame.setRight(3);
-		frame.setNear(-100);
-		frame.setFar(100);
+		frame.setCamera(new Camera(10, 14, 10));
+		frame.setProjection(new ProjectionCuboid(-3, 3, -100, 100));
 		//Add key listener
 		frame.addKeyListener(new DefaultMovingKeyListener(frame));
 		//Create circle and add listener

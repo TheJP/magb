@@ -61,6 +61,10 @@ public class GLFrame extends JFrame implements GLEventListener {
 	 */
 	private ReshapeType stdReshape = ReshapeType.PROPORTIONAL;
 	/**
+	 * Defines if the standard camera system (3D View) should be applied.
+	 */
+	private boolean stdCameraSystem = true;
+	/**
 	 * Id of the currently used shader program.
 	 */
 	private int programId = 0;
@@ -69,14 +73,8 @@ public class GLFrame extends JFrame implements GLEventListener {
 	 */
 	private GLBufferBase buffer = new DefaultGLBuffer();
 
-	//** Projection cuboid (These are the default values) **//
-	private float left = -1;
-	private float right = 1;
-	private float near = -100;
-	private float far = 100;
-	private float r = 10;
-	private float elevation = 10;
-	private float azimut=45;
+	private ProjectionCuboid projection = new ProjectionCuboid();
+	private Camera camera = new Camera();
 
 	//** Shader variable ids **//
 
@@ -124,22 +122,12 @@ public class GLFrame extends JFrame implements GLEventListener {
 	}
 
 	/**
-	 * Sets projection cuboid. The parameters define the shape of the cuboid-
+	 * Sets projection cuboid. The parameters define the shape of the cuboid.
 	 * @param gl OpenGl context.
-	 * @param left
-	 * @param right
-	 * @param bottom
-	 * @param top
-	 * @param near
-	 * @param far
+	 * @param projection Values of the projection cuboid
 	 */
-    public void setProjection(GL2GL3 gl, float left, float right, float bottom, float top, float near, float far) {
-    	Matrix m = Matrix.from2DArray(new double[][]{
-    		{2.0f / (right-left),                   0,                  0, - (right + left) / (right-left)},
-    		{                  0, 2.0f / (top-bottom),                  0, - (top + bottom) / (top-bottom)},
-    		{                  0,                   0, -2.0f / (far-near),     - (far + near) / (far-near)},
-    		{                  0,                   0,                  0,                               1}
-    	});
+    public void setProjection(GL2GL3 gl, ProjectionCuboid projection) {
+		Matrix m = projection.getProjectionMatrix();
 		gl.glUniformMatrix4fv(getProjMatrixLoc(), 1, false, Utility.matrixToArray(m), 0);
 	}
 
@@ -150,18 +138,8 @@ public class GLFrame extends JFrame implements GLEventListener {
      * @param elevation Elevation angel in degrees.
      * @param azimut Azimut angle in degrees.
      */
-    public void setCameraSystem(GL2GL3 gl, float r, float elevation, float azimut){
-    	float toRad = (float)(Math.PI/180);
-    	float c = (float)Math.cos(toRad*elevation);
-    	float s = (float)Math.sin(toRad*elevation);
-    	float cc = (float)Math.cos(toRad*azimut);
-    	float ss = (float)Math.sin(toRad*azimut);
-    	Matrix m = Matrix.from2DArray(new double[][]{
-    		{  cc, -s*ss, c*ss, 0 },
-    		{   0,     c,    s, 0 },
-    		{ -ss, -s*cc, c*cc, 0 },
-    		{   0,     0,   -r, 1 },	
-    	});
+    public void setCameraSystem(GL2GL3 gl, Camera camera){
+    	Matrix m = camera.getCameraSystem();
     	gl.glUniformMatrix4fv(viewMatrixLoc, 1, false, Utility.matrixToArray(m), 0);
     }
 
@@ -248,6 +226,10 @@ public class GLFrame extends JFrame implements GLEventListener {
 
 	@Override
 	public void display(GLAutoDrawable drawable) {
+		if(stdCameraSystem){
+			GL2GL3 gl = drawable.getGL().getGL2GL3();
+			setCameraSystem(gl, camera);
+		}
 		//This method has to be implemented by the clients of the GLFrame
 	}
 
@@ -258,11 +240,10 @@ public class GLFrame extends JFrame implements GLEventListener {
 		gl.glViewport(0, 0, width, height);
 		switch (stdReshape) {
 			case PROPORTIONAL:
-				float top, bottom;
 				float aspect = (float)height/width;
-				bottom = aspect * left;
-				top = aspect * right;
-				setProjection(gl, left, right, bottom, top, near, far);
+				projection.setBottom(aspect * projection.getLeft());
+				projection.setTop(aspect * projection.getRight());
+				setProjection(gl, projection);
 				break;
 			default:
 				break;
@@ -299,6 +280,14 @@ public class GLFrame extends JFrame implements GLEventListener {
 	 */
 	public void setStdShaderVars(boolean stdShaderVars) {
 		this.stdShaderVars = stdShaderVars;
+	}
+
+	public boolean isStdCameraSystem() {
+		return stdCameraSystem;
+	}
+
+	public void setStdCameraSystem(boolean stdCameraSystem) {
+		this.stdCameraSystem = stdCameraSystem;
 	}
 
 	/**
@@ -363,59 +352,19 @@ public class GLFrame extends JFrame implements GLEventListener {
 		this.stdReshape = stdReshape;
 	}
 
-	public float getLeft() {
-		return left;
+	public ProjectionCuboid getProjection() {
+		return projection;
 	}
 
-	public void setLeft(float left) {
-		this.left = left;
+	public void setProjection(ProjectionCuboid projection) {
+		this.projection = projection;
 	}
 
-	public float getRight() {
-		return right;
+	public Camera getCamera() {
+		return camera;
 	}
 
-	public void setRight(float right) {
-		this.right = right;
-	}
-
-	public float getNear() {
-		return near;
-	}
-
-	public void setNear(float near) {
-		this.near = near;
-	}
-
-	public float getFar() {
-		return far;
-	}
-
-	public void setFar(float far) {
-		this.far = far;
-	}
-
-	public float getR() {
-		return r;
-	}
-
-	public void setR(float r) {
-		this.r = r;
-	}
-
-	public float getElevation() {
-		return elevation;
-	}
-
-	public void setElevation(float elevation) {
-		this.elevation = elevation;
-	}
-
-	public float getAzimut() {
-		return azimut;
-	}
-
-	public void setAzimut(float azimut) {
-		this.azimut = azimut;
+	public void setCamera(Camera camera) {
+		this.camera = camera;
 	}
 }
