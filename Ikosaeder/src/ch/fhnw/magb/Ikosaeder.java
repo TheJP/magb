@@ -39,6 +39,8 @@ public class Ikosaeder extends GLEventListenerAdapter {
 		frame.setRight(3);
 		frame.setNear(-100);
 		frame.setFar(100);
+		//Add key listener
+		frame.addKeyListener(new DefaultMovingKeyListener(frame));
 		//Create circle and add listener
 		Ikosaeder circle = new Ikosaeder(frame);
 		frame.addGLEventListener(circle);

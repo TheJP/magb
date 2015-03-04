@@ -117,6 +117,13 @@ public class GLFrame extends JFrame implements GLEventListener {
 	}
 
 	/**
+	 * Repaints GL.
+	 */
+	public void repaint(){
+		canvas.repaint();
+	}
+
+	/**
 	 * Sets projection cuboid. The parameters define the shape of the cuboid-
 	 * @param gl OpenGl context.
 	 * @param left
