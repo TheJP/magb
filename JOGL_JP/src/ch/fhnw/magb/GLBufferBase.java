@@ -2,6 +2,8 @@ package ch.fhnw.magb;
 
 import javax.media.opengl.GL2GL3;
 
+import org.la4j.Vector;
+
 public abstract class GLBufferBase {
 
 	public final static int SIZEOF_4C_Float_Array = 4 * Float.BYTES;
@@ -28,6 +30,9 @@ public abstract class GLBufferBase {
 	 */
 	public abstract void reset();
 	public abstract void addVertex(float... v);
+	public void addVertex(Vector a){
+		addVertex(Utility.matrixToArray(a.toRowMatrix()));
+	}
 	public void setup(GL2GL3 gl, GLFrame glFrame){
 		//Vertex Array Object
 		int[] tmp = new int[1];

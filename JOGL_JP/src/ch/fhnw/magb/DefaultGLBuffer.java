@@ -7,7 +7,7 @@ import javax.media.opengl.GL2GL3;
 
 import com.jogamp.common.nio.Buffers;
 
-public class DefaultGLBuffer extends GLBufferBase {
+public class DefaultGLBuffer extends GLColorBufferBase {
 
 	public final static int STD_BUFFER_SIZE = 512;
 
@@ -19,10 +19,6 @@ public class DefaultGLBuffer extends GLBufferBase {
      * Number of vertices in the buffer. 
      */
     private int vertices = 0;
-    /**
-     * Current color.
-     */
-    private float[] color = new float[]{ 0, 0, 0, 0 };
 
 	@Override
 	public int getBufferSize() {
@@ -61,25 +57,9 @@ public class DefaultGLBuffer extends GLBufferBase {
 		//Add 4th vector component
 		vertexBuffer.put(1);
 		//Add color components
-		vertexBuffer.put(color);
+		vertexBuffer.put(getColor());
 		//Increment vertex counter
 		++vertices;
-	}
-
-	/**
-	 * Current color.
-	 * @return
-	 */
-	public float[] getColor() {
-		return color;
-	}
-
-	/**
-	 * Change to color.
-	 * @param color
-	 */
-	public void setColor(float... color) {
-		this.color = color;
 	}
 
 	@Override

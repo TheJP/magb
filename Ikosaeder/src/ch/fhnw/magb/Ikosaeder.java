@@ -3,6 +3,9 @@ package ch.fhnw.magb;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLAutoDrawable;
 
+import org.la4j.V;
+import org.la4j.Vector;
+
 import ch.fhnw.magb.GLFrame.ReshapeType;
 
 public class Ikosaeder extends GLEventListenerAdapter {
@@ -11,7 +14,14 @@ public class Ikosaeder extends GLEventListenerAdapter {
 	 * Buffer, to which the circle is drawn.
 	 */
 	private DefaultGLBuffer buffer = new DefaultGLBuffer();
+	/**
+	 * Reference to the used GLFrame.
+	 */
 	private GLFrame frame;
+	/**
+	 * Stores the direction in which the sun is. (Directional light)
+	 */
+	private Vector toLight = V.v(-1, 2, 1);
 
 	public Ikosaeder(GLFrame frame) {
 		frame.setStdReshape(ReshapeType.PROPORTIONAL);
@@ -25,8 +35,8 @@ public class Ikosaeder extends GLEventListenerAdapter {
 		gl.glClear(GL2GL3.GL_COLOR_BUFFER_BIT | GL2GL3.GL_DEPTH_BUFFER_BIT);
 		frame.setCameraSystem(gl, frame.getR(), frame.getElevation(), frame.getAzimut());
 	    buffer.reset();
-	    buffer.setColor(0, 0.5f, 0, 1);
-	    Utility.drawIkosaeder(gl, buffer);
+	    buffer.setColor(0, 1, 0, 1);
+	    Utility.drawIkosaeder(gl, buffer, toLight);
 	}
 
 	public static void main(String[] args) {
