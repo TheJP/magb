@@ -251,7 +251,7 @@ public class GLFrame extends JFrame implements GLEventListener {
 		gl.glViewport(0, 0, width, height);
 		switch (stdReshape) {
 			case PROPORTIONAL:
-				float top, bottom, left=-1, right=1, near=-100, far=100;
+				float top, bottom;
 				float aspect = (float)height/width;
 				bottom = aspect * left;
 				top = aspect * right;

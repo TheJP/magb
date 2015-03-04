@@ -31,14 +31,14 @@ public class Ikosaeder extends GLEventListenerAdapter {
 
 	public static void main(String[] args) {
 		//Init frame
-		GLFrame frame = new GLFrame("Circle");
-		/*frame.setR(10);
+		GLFrame frame = new GLFrame("Ikosaeder");
+		frame.setR(10);
 		frame.setElevation(14);
 		frame.setAzimut(10);
 		frame.setLeft(-3);
 		frame.setRight(3);
-		frame.setNear(-10);
-		frame.setFar(100);*/
+		frame.setNear(-100);
+		frame.setFar(100);
 		//Create circle and add listener
 		Ikosaeder circle = new Ikosaeder(frame);
 		frame.addGLEventListener(circle);
