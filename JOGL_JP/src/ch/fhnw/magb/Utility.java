@@ -127,7 +127,7 @@ public class Utility {
 	public static void drawShadowVector(GLBufferBase buffer, Vector a, Vector toLight, Vector nE, double d){
 		double t = (d - a.innerProduct(nE)) / nE.innerProduct(toLight);
 		Vector aa = a.add(toLight.multiply(t));
-		buffer.addVertex(Utility.matrixToArray(aa.toRowMatrix()));
+		buffer.addVertex(aa);
 	}
 
 	/**
