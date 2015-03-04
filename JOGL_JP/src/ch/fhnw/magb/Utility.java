@@ -7,6 +7,7 @@ import org.la4j.V;
 import org.la4j.Vector;
 
 import ch.fhnw.magb.figure.Ikosaeder;
+import ch.fhnw.magb.figure.Sphere;
 
 /**
  * Utility which provides useful, not changing functionality.
@@ -135,9 +136,22 @@ public class Utility {
 	 * The lighting and shadows are drawn using one directional light source, which is given as parameter.
 	 * @param gl OpenGl context
 	 * @param buffer
+	 * @param toLight Normalized direction towards the directional light. 
 	 */
 	public static void drawIkosaeder(GL2GL3 gl, GLColorBufferBase buffer, Vector toLight){
 		Ikosaeder.draw(gl, buffer, toLight);
+	}
+
+	/**
+	 * Draws a Sphere at the current center using the current color.
+	 * The lighting and shadows are drawn using one directional light source, which is given as parameter.
+	 * @param gl
+	 * @param buffer
+	 * @param toLight Normalized direction towards the directional light. 
+	 * @param precision The sphere is drawn as a subdivided Ikosaeder. This parameter defines the number of subdivisions.
+	 */
+	public static void drawSphere(GL2GL3 gl, DefaultGLBuffer buffer, Vector toLight, int precision) {
+		Sphere.draw(gl, buffer, toLight, precision);
 	}
 
 }

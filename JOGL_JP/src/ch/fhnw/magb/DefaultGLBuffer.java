@@ -9,7 +9,7 @@ import com.jogamp.common.nio.Buffers;
 
 public class DefaultGLBuffer extends GLColorBufferBase {
 
-	public final static int STD_BUFFER_SIZE = 512;
+	public final static int STD_BUFFER_SIZE = 1000000;
 
 	/**
 	 * Internal buffer of vertices.

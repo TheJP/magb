@@ -27,6 +27,10 @@ public class Ikosaeder {
 	};
 
 	public static void draw(GL2GL3 gl, GLColorBufferBase buffer, Vector toLight){
+		draw(gl, buffer, toLight, data, indicies);
+	}
+
+	public static void draw(GL2GL3 gl, GLColorBufferBase buffer, Vector toLight, float[][] data, int[][] indicies){
 		//Store original color, so it can be reseted to it
 		float[] color = buffer.getColor();
 		//Ensure that light is normalized
@@ -58,5 +62,13 @@ public class Ikosaeder {
 	    buffer.draw(gl, GL2GL3.GL_TRIANGLES);
 	    //Reset color to the original value
 	    buffer.setColor(color);
+	}
+
+	public static float[][] getData() {
+		return data;
+	}
+
+	public static int[][] getIndicies() {
+		return indicies;
 	}
 }
