@@ -4,9 +4,10 @@ import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 
 import ch.fhnw.util.math.Mat4;
+import ch.fhnw.util.math.Vec3;
 
 import com.jogamp.opengl.util.FPSAnimator;
-public class EarthT extends GLMinimalT
+public class Mercedes extends GLMinimalT
 {
     // --------------------  Globale Daten  ------------------------------
 
@@ -31,6 +32,17 @@ public class EarthT extends GLMinimalT
 
 
     // -----------------------------  Methoden  --------------------------------
+
+    void zeichneDreieck(GL2 gl, Vec3 a, Vec3 b, Vec3 c)
+    {
+       rewindBuffer(gl);
+       putVertex(a.x,a.y,a.z);
+       putVertex(b.x,b.y,b.z);
+       putVertex(c.x,c.y,c.z);
+       int nVertices = 3;
+       copyBuffer(gl, nVertices);
+       gl.glDrawArrays(GL2.GL_TRIANGLES, 0, nVertices);
+    }
 
     void zeichneRechteck(GL2 gl, float a, float b)
     {  a *= 0.5f;
@@ -116,9 +128,27 @@ public class EarthT extends GLMinimalT
       setColor(0.8f, 0.8f, 0.8f, 1);
       zeichneAchsen(gl, 8,8,8);
       rotate(gl,drehWinkel,0,1,0);                          // Objekt-System Erde
-      enableTexture(gl);
-      zeichneKugel(gl,2,20,20);
+//      enableTexture(gl);
+//      zeichneKugel(gl,2,20,20);
 //      zeichneRechteck(gl,8,4);
+      Vec3 a = new Vec3(1,0,0);
+      Vec3 b = new Vec3(0,0,-1);
+      Vec3 c = new Vec3(-1,0,0);
+      Vec3 d = new Vec3(0,0,1);
+      Vec3 s = new Vec3(0,5,0);
+      pushMatrix(gl);
+      for(int i = 0; i < 3; ++i){
+    	  setColor(0, 1 * (i/3) + 0.2f, 0, 1);
+          zeichneDreieck(gl, a, b, s);
+    	  setColor(0, 1 * (i/3) + 0.25f, 0, 1);
+          zeichneDreieck(gl, c, b, s);
+    	  setColor(0, 1 * (i/3) + 0.3f, 0, 1);
+          zeichneDreieck(gl, c, d, s);
+    	  setColor(0, 1 * (i/3) + 0.35f, 0, 1);
+          zeichneDreieck(gl, d, a, s);
+          rotate(gl, 120, 0, 0, 1);
+      }
+      popMatrix(gl);
       disableTexture(gl);
       drehWinkel+=0.5f;
    }
@@ -126,6 +156,6 @@ public class EarthT extends GLMinimalT
     //  -----------  main-Methode  ---------------------------
 
     public static void main(String[] args)
-    { new EarthT();
+    { new Mercedes();
     }
 }

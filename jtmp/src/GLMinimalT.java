@@ -3,17 +3,29 @@
 //   adaptiert von:
 //   http://forum.jogamp.org/Modern-JOGL-simple-texture-example-td4029964.html
 //   (gbarbieri)
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-import javax.media.opengl.*;
-import javax.media.opengl.awt.*;
-import java.nio.*;
+import java.awt.Frame;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.IOException;
-import com.jogamp.common.nio.*;
-import com.jogamp.opengl.util.*;
-import com.jogamp.opengl.util.texture.*;
-import ch.fhnw.util.math.*;
+import java.nio.FloatBuffer;
+import java.util.Stack;
+
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
+import javax.media.opengl.awt.GLCanvas;
+
+import ch.fhnw.util.math.Mat4;
+import ch.fhnw.util.math.Vec3;
+
+import com.jogamp.common.nio.Buffers;
+import com.jogamp.opengl.util.texture.Texture;
+import com.jogamp.opengl.util.texture.TextureIO;
 
 public class GLMinimalT
        implements WindowListener, GLEventListener
@@ -333,8 +345,8 @@ public class GLMinimalT
     @Override
     public void init(GLAutoDrawable drawable)
     {  GL2 gl = drawable.getGL().getGL2();
-       System.out.println("OpenGl Version: " + gl.glGetString(gl.GL_VERSION));
-       System.out.println("Shading Language: " + gl.glGetString(gl.GL_SHADING_LANGUAGE_VERSION));
+       System.out.println("OpenGl Version: " + gl.glGetString(GL.GL_VERSION));
+       System.out.println("Shading Language: " + gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION));
        gl.glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
        gl.glEnable(GL2.GL_DEPTH_TEST);
        int program = GLShaders.loadShaders(gl,vShaderFileName, fShaderFileName);
@@ -387,7 +399,7 @@ public class GLMinimalT
     //  -----------  main-Methode  ---------------------------
 
     public static void main(String[] args)
-    { GLMinimalT sample = new GLMinimalT();
+    { new GLMinimalT();
     }
 
     //  ---------  Window-Events  --------------------

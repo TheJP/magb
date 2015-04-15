@@ -3,6 +3,7 @@
 * http://www.lighthouse3d.com/cg-topics/code-samples/opengl-3-3-glsl-1-5-sample/
 */
 import java.io.*;
+
 import javax.media.opengl.*;
 public class GLShaders
 {
@@ -89,7 +90,14 @@ public class GLShaders
           return sb.toString();
        }
        catch (final Exception ex)
-       {  ex.printStackTrace();
+       {
+    	   ex.printStackTrace();
+       } finally {
+    	   try {
+			reader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
        }
       return "";
     }
