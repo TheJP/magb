@@ -32,6 +32,22 @@ public class Utility {
 	}
 
 	/**
+	 * Converts given matrix to flat array.
+	 * @param m Matrix
+	 * @return Array
+	 */
+	public static float[] matrixToGLArray(Matrix m){
+		int i = m.rows()*m.columns();
+		float[] result = new float[i];
+		for(int x = m.columns() - 1; x >= 0; --x){
+			for(int y = m.rows() - 1; y >= 0; --y){
+				result[--i] = (float)m.get(y, x);
+			}
+		}
+		return result;
+	}
+
+	/**
 	 * Converts a given double array to a float array.
 	 * @param d
 	 * @return

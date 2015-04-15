@@ -35,11 +35,17 @@ public class Camera {
 		float s = (float)Math.sin(toRad*elevation);
 		float cc = (float)Math.cos(toRad*azimut);
 		float ss = (float)Math.sin(toRad*azimut);
+//		return Matrix.from2DArray(new double[][]{
+//			{  cc, -s*ss, c*ss, 0 },
+//			{   0,     c,    s, 0 },
+//			{ -ss, -s*cc, c*cc, 0 },
+//			{   0,     0,   -r, 1 },
+//		});
 		return Matrix.from2DArray(new double[][]{
-			{  cc, -s*ss, c*ss, 0 },
-			{   0,     c,    s, 0 },
-			{ -ss, -s*cc, c*cc, 0 },
-			{   0,     0,   -r, 1 },
+			{    cc, 0,   -ss,  0 },
+			{ -s*ss, c, -s*cc,  0 },
+			{  c*ss, s,  c*cc, -r },
+			{     0, 0,     0,  1 },
 		});
 	}
 

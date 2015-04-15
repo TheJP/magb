@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Stack;
 
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLAutoDrawable;
@@ -73,6 +74,15 @@ public class GLFrame extends JFrame implements GLEventListener {
 	 */
 	private GLBufferBase buffer = new DefaultGLBuffer();
 
+	/**
+	 * Matrix which is used for the ViewModel transformation.
+	 */
+	private Matrix viewMatrix = DenseMatrix.identity(4);
+	/**
+	 * Stack, which stores viewMatrices of higher levels.
+	 */
+	private final Stack<Matrix> viewMatrices = new Stack<>();
+
 	private ProjectionCuboid projection = new ProjectionCuboid();
 	private Camera camera = new Camera();
 
@@ -139,9 +149,36 @@ public class GLFrame extends JFrame implements GLEventListener {
      * @param azimut Azimut angle in degrees.
      */
     public void setCameraSystem(GL2GL3 gl, Camera camera){
-    	Matrix m = camera.getCameraSystem();
-    	gl.glUniformMatrix4fv(viewMatrixLoc, 1, false, Utility.matrixToArray(m), 0);
+    	viewMatrix = camera.getCameraSystem();
+    	gl.glUniformMatrix4fv(viewMatrixLoc, 1, false, Utility.matrixToGLArray(viewMatrix), 0);
     }
+
+    public void begin(){
+    	viewMatrices.add(viewMatrix);
+    }
+    public void end(){
+    	if(viewMatrices.isEmpty()){ throw new IllegalStateException("Invalid amount of begin/end calls"); }
+    	viewMatrix = viewMatrices.pop();
+    }
+
+    /**
+     * Adds a translation to the ViewModel Matrix M (=viewMatrix, V*U).
+     * In the end it's a translation of the object system.
+     * @param gl
+     * @param x
+     * @param y
+     * @param z
+     */
+	public void translate(GL2GL3 gl, double x, double y, double z) {
+    	//Create the translation matrix
+    	Matrix b = DenseMatrix.identity(4);
+    	b.set(0, 3, x);
+    	b.set(1, 3, y);
+    	b.set(2, 3, z);
+    	//Multiply both matrices
+    	viewMatrix = viewMatrix.multiply(b);
+    	gl.glUniformMatrix4fv(viewMatrixLoc, 1, false, Utility.matrixToGLArray(viewMatrix), 0);
+	}
 
 	/**
 	 * Creates shader and compiles it using the filename.
