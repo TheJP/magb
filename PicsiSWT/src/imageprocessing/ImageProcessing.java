@@ -13,6 +13,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 
+import com.sun.scenario.effect.ImageData;
+
 /**
  * Image processing class: contains widely used image processing functions
  * 
@@ -47,6 +49,7 @@ public class ImageProcessing {
 		// TODO add here further image processing objects (they are inserted into the Image menu)
 		m_menuItems.add(new ImageMenuItem("RGBTo&Gray\tF2", SWT.F2, new RGBToGray()));
 		m_menuItems.add(new ImageMenuItem("GrayTo&Binary\tF3", SWT.F3, new GrayToBinary()));
+		m_menuItems.add(new ImageMenuItem("&Rotate\tF4", SWT.F4, new Rotate()));
 	}
 	
 	public void createMenuItems(Menu menu) {
@@ -77,6 +80,8 @@ public class ImageProcessing {
 		return m_menuItems.get(i).m_process.isEnabled(m_views.getFirstimageType());
 	}
 
-	// add general image processing class methods here
-	
+	public static void convolve(ImageData data, double[][] matrix, int middleX, int middleY){
+		
+	}
+
 }
