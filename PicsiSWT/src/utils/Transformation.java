@@ -1,8 +1,6 @@
-package imageprocessing;
+package utils;
 
 import org.eclipse.swt.graphics.ImageData;
-
-import utils.Parallel;
 
 /**
  * class that represents a 3x3 affine transformation

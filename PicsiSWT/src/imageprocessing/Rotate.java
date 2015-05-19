@@ -1,6 +1,6 @@
 package imageprocessing;
 
-import static imageprocessing.Transformation.rotation;
+import static utils.Transformation.rotation;
 
 import javax.swing.JOptionPane;
 
@@ -8,6 +8,8 @@ import main.PicsiSWT;
 
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+
+import utils.Transformation;
 
 public class Rotate implements IImageProcessor {
 
