@@ -78,14 +78,26 @@ public class Transformation {
 	 * @return
 	 */
 	public Transformation invert(){
-		double den = m[0][0]*m[1][1] - m[0][1]*m[1][0];
-		if(den != 0){ throw new IllegalArgumentException(); }
-		
-		return new Transformation(new double[][] {
-			{ m[1][1]/den,-m[0][1]/den, (m[0][1]*m[1][2] - m[0][2]*m[1][1])/den }, 
-			{-m[1][0]/den, m[0][0]/den, (m[0][2]*m[1][0] - m[0][0]*m[1][2])/den }, 
-			{ 0, 0 , 1 }
-		});
+		if (m[2][0] == 0 && m[2][1] == 0 && m[2][2] == 1) {
+			double den = m[0][0]*m[1][1] - m[0][1]*m[1][0];
+			assert den != 0 : "matrix is singular";
+
+			return new Transformation(new double[][] {
+				{ m[1][1]/den,-m[0][1]/den, (m[0][1]*m[1][2] - m[0][2]*m[1][1])/den }, 
+				{-m[1][0]/den, m[0][0]/den, (m[0][2]*m[1][0] - m[0][0]*m[1][2])/den }, 
+				{ 0, 0 , 1 }
+			});
+		} else {
+			double den = m[0][0]*m[1][1]*m[2][2] + m[0][1]*m[1][2]*m[2][0] + m[0][2]*m[1][0]*m[2][1]
+					   - m[0][0]*m[1][2]*m[2][1] - m[0][1]*m[1][0]*m[2][2] - m[0][2]*m[1][1]*m[2][0];
+			assert den != 0 : "matrix is singular";
+
+			return new Transformation(new double[][] {
+				{ (m[1][1]*m[2][2] - m[1][2]*m[2][1])/den, (m[0][2]*m[2][1] - m[0][1]*m[2][2])/den, (m[0][1]*m[1][2] - m[0][2]*m[1][1])/den },
+				{ (m[1][2]*m[2][0] - m[1][0]*m[2][2])/den, (m[0][0]*m[2][2] - m[0][2]*m[2][0])/den, (m[0][2]*m[1][0] - m[0][0]*m[1][2])/den },
+				{ (m[1][0]*m[2][1] - m[1][1]*m[2][0])/den, (m[0][1]*m[2][0] - m[0][0]*m[2][1])/den, (m[0][0]*m[1][1] - m[0][1]*m[1][0])/den }
+			});
+		}
 	}
 
 	/**
