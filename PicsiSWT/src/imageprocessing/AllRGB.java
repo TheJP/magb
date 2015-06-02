@@ -66,7 +66,7 @@ public class AllRGB implements IImageProcessor {
 	@Override
 	public Image run(Image input, int imageType) {
 		final ImageData outData = new ImageData(4096, 4096, 24, input.getImageData().palette);
-		String[] options = new String[]{ "iterative", "logarithmic function" };
+		String[] options = new String[]{ "boring", "linear", "logarithmic spiral" };
 		int option = JOptionPane.showOptionDialog(null, "Choose the ImageType", "AllRGB", 0, JOptionPane.QUESTION_MESSAGE, null, options, "");
 
 		switch (option) {
@@ -79,42 +79,21 @@ public class AllRGB implements IImageProcessor {
 				});
 				break;
 			case 1:
+			case 2:
 				List<RGB2> rgbs = new ArrayList<RGB2>(4096*4096);
 				for(int x = 0; x < 0x1000000; ++x){
 					rgbs.add(new RGB2(outData.palette.getRGB(x)));
 				}
-				rgbs.sort(new Comp3Inv());
+				rgbs.sort(new Comp15());
 				Iterator<RGB2> it = rgbs.iterator();
-//				for(int y = 0; y < outData.height; ++y){
-//					for(int x = 0; x < outData.width; ++x){
-//						outData.setPixel(x, y, it.hasNext() ? outData.palette.getPixel(it.next().rgb) : 0);
-//					}
-//				}
-				float m = 4096/2;
-				boolean first = true;
-				float x0 = 0, y0 = 0;
-				for(double i = 0.01; i < 40.0; i+=0.01){
-					double factor = Math.pow(Math.E, 0.25*i);
-					double x = factor * Math.cos(i) + m;
-					double y = factor * Math.sin(i) + m;
-					if(first){
-						first = false;
-					} else {
-						Triangle t = new Triangle(m, m, x0, y0, (float)x, (float)y);
-						int maxx = Math.min(outData.width,  (int) Math.ceil(Math.max(m, Math.max(x, x0))));
-						int maxy = Math.min(outData.height, (int) Math.ceil(Math.max(m, Math.max(y, y0))));
-						for(int u = Math.max(0, (int) Math.floor(Math.min(m, Math.min(x, x0)))); u < maxx; ++u){
-							for(int v = Math.max(0, (int) Math.floor(Math.min(m, Math.min(y, y0)))); v < maxy; ++v){
-								if(t.inside(u, v) && outData.getPixel(u, v) == 0){
-									outData.setPixel(u, v, it.hasNext() ? outData.palette.getPixel(it.next().rgb) : 0);
-								}
-							}
-						}
-					}
-					x0 = (float) x;
-					y0 = (float) y;
-//					setPixel(outData, (int)x, (int)y, 0xffffff);
+
+				switch(option){
+					case 1:
+						drawLinear(it, outData);
+					case 2:
+						drawSpiral(it, outData);
 				}
+
 				break;
 			default:
 				break;
@@ -122,7 +101,42 @@ public class AllRGB implements IImageProcessor {
 
 		return new Image(input.getDevice(), outData);
 	}
-	
+
+	private void drawLinear(Iterator<RGB2> it, ImageData outData){
+		for(int y = 0; y < outData.height; ++y){
+			for(int x = 0; x < outData.width; ++x){
+				outData.setPixel(x, y, it.hasNext() ? outData.palette.getPixel(it.next().rgb) : 0);
+			}
+		}
+	}
+
+	private void drawSpiral(Iterator<RGB2> it, ImageData outData){
+		float m = 4096/2;
+		boolean first = true;
+		float x0 = 0, y0 = 0;
+		for(double i = 0.01; i < 50.0 && it.hasNext(); i+=0.01){
+			double factor = Math.pow(Math.E, 0.3*i);
+			double x = factor * Math.cos(i) + m;
+			double y = factor * Math.sin(i) + m;
+			if(first){
+				first = false;
+			} else {
+				Triangle t = new Triangle(m, m, x0, y0, (float)x, (float)y);
+				int maxx = Math.min(outData.width,  (int) Math.ceil(Math.max(m, Math.max(x, x0))));
+				int maxy = Math.min(outData.height, (int) Math.ceil(Math.max(m, Math.max(y, y0))));
+				for(int u = Math.max(0, (int) Math.floor(Math.min(m, Math.min(x, x0)))); u < maxx; ++u){
+					for(int v = Math.max(0, (int) Math.floor(Math.min(m, Math.min(y, y0)))); v < maxy; ++v){
+						if(t.inside(u, v) && outData.getPixel(u, v) == 0){
+							outData.setPixel(u, v, it.hasNext() ? outData.palette.getPixel(it.next().rgb) : 0);
+						}
+					}
+				}
+			}
+			x0 = (float) x;
+			y0 = (float) y;
+//			setPixel(outData, (int)x, (int)y, 0xffffff);
+		}
+	}
 
 	static class CompH implements Comparator<RGB2> {
 		@Override
@@ -155,6 +169,18 @@ public class AllRGB implements IImageProcessor {
 		@Override
 		public int compare(RGB2 o2, RGB2 o1) {
 			return Float.compare(o1.b+o1.s+(o1.h/180f), o2.b+o2.s+(o2.h/180f));
+		}
+	}
+	static class Comp15 implements Comparator<RGB2> {
+		@Override
+		public int compare(RGB2 o1, RGB2 o2) {
+			return Float.compare(o1.b+o1.s+(o1.h/36f), o2.b+o2.s+(o2.h/36f));
+		}
+	}
+	static class Comp15Inv implements Comparator<RGB2> {
+		@Override
+		public int compare(RGB2 o2, RGB2 o1) {
+			return Float.compare(o1.b+o1.s+(o1.h/36f), o2.b+o2.s+(o2.h/36f));
 		}
 	}
 }
