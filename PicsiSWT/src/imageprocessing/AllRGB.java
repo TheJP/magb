@@ -1,9 +1,12 @@
 package imageprocessing;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import javax.swing.JOptionPane;
 
@@ -61,12 +64,31 @@ public class AllRGB implements IImageProcessor {
 			float beta = - ( (detvv1 - detv0v1) / detv1v2 );
 			return alpha > 0 && beta > 0 && alpha + beta < 1;
 		}
+
+		public int fill(Iterator<RGB2> it, ImageData outData){
+			int count = 0;
+			float x1 = this.x1 + this.x0;
+			float x2 = this.x2 + this.x0;
+			float y1 = this.y1 + this.x0;
+			float y2 = this.y2 + this.x0;
+			int maxx = Math.min(outData.width,  (int) Math.ceil(Math.max(x0, Math.max(x2, x1))));
+			int maxy = Math.min(outData.height, (int) Math.ceil(Math.max(y0, Math.max(y2, y1))));
+			for(int u = Math.max(0, (int) Math.floor(Math.min(x0, Math.min(x2, x1)))); u < maxx; ++u){
+				for(int v = Math.max(0, (int) Math.floor(Math.min(y0, Math.min(y2, y1)))); v < maxy; ++v){
+					if(inside(u, v) && outData.getPixel(u, v) == 0){
+						if(it.hasNext()){ ++count; }
+						outData.setPixel(u, v, it.hasNext() ? outData.palette.getPixel(it.next().rgb) : 0);
+					}
+				}
+			}
+			return count;
+		}
 	}
 
 	@Override
 	public Image run(Image input, int imageType) {
 		final ImageData outData = new ImageData(4096, 4096, 24, input.getImageData().palette);
-		String[] options = new String[]{ "boring", "linear", "logarithmic spiral" };
+		String[] options = new String[]{ "boring", "linear", "logarithmic spiral", "green" };
 		int option = JOptionPane.showOptionDialog(null, "Choose the ImageType", "AllRGB", 0, JOptionPane.QUESTION_MESSAGE, null, options, "");
 
 		switch (option) {
@@ -80,18 +102,30 @@ public class AllRGB implements IImageProcessor {
 				break;
 			case 1:
 			case 2:
+			case 3:
 				List<RGB2> rgbs = new ArrayList<RGB2>(4096*4096);
 				for(int x = 0; x < 0x1000000; ++x){
 					rgbs.add(new RGB2(outData.palette.getRGB(x)));
 				}
-				rgbs.sort(new Comp15());
+				switch (option) {
+					case 3:
+						rgbs.sort(new CompGreen());
+						break;
+					default:
+						rgbs.sort(new Comp15());
+						break;
+				}
 				Iterator<RGB2> it = rgbs.iterator();
 
 				switch(option){
 					case 1:
 						drawLinear(it, outData);
+						break;
 					case 2:
 						drawSpiral(it, outData);
+						break;
+					case 3:
+						drawCircle(rgbs, outData, 1000);
 				}
 
 				break;
@@ -105,7 +139,9 @@ public class AllRGB implements IImageProcessor {
 	private void drawLinear(Iterator<RGB2> it, ImageData outData){
 		for(int y = 0; y < outData.height; ++y){
 			for(int x = 0; x < outData.width; ++x){
-				outData.setPixel(x, y, it.hasNext() ? outData.palette.getPixel(it.next().rgb) : 0);
+				if(outData.getPixel(x, y) == 0){
+					outData.setPixel(x, y, it.hasNext() ? outData.palette.getPixel(it.next().rgb) : 0);
+				}
 			}
 		}
 	}
@@ -122,20 +158,43 @@ public class AllRGB implements IImageProcessor {
 				first = false;
 			} else {
 				Triangle t = new Triangle(m, m, x0, y0, (float)x, (float)y);
-				int maxx = Math.min(outData.width,  (int) Math.ceil(Math.max(m, Math.max(x, x0))));
-				int maxy = Math.min(outData.height, (int) Math.ceil(Math.max(m, Math.max(y, y0))));
-				for(int u = Math.max(0, (int) Math.floor(Math.min(m, Math.min(x, x0)))); u < maxx; ++u){
-					for(int v = Math.max(0, (int) Math.floor(Math.min(m, Math.min(y, y0)))); v < maxy; ++v){
-						if(t.inside(u, v) && outData.getPixel(u, v) == 0){
-							outData.setPixel(u, v, it.hasNext() ? outData.palette.getPixel(it.next().rgb) : 0);
-						}
-					}
-				}
+				t.fill(it, outData);
 			}
 			x0 = (float) x;
 			y0 = (float) y;
 //			setPixel(outData, (int)x, (int)y, 0xffffff);
 		}
+	}
+
+	private void drawCircle(List<RGB2> rgbs, ImageData outData, int r){
+		float m = 4096/2;
+		boolean first = true;
+		float x0 = 0, y0 = 0;
+		//randomize circle colors
+		Iterator<RGB2> it = rgbs.iterator();
+		if(r == 1000){
+			List<RGB2> rgbs2 = rgbs.stream().limit(3141380).collect(Collectors.toList());
+			Collections.shuffle(rgbs2);
+			it = rgbs2.iterator();
+		}
+		int count = 0;
+		for(double i = 0.0; i < 2*Math.PI+1 && it.hasNext(); i+=0.01){
+			double x = r*Math.cos(i) + m;
+			double y = r*Math.sin(i) + m;
+			if(first){
+				first = false;
+			} else {
+				Triangle t = new Triangle(m, m, x0, y0, (float)x, (float)y);
+				count += t.fill(it, outData);
+			}
+			x0 = (float) x;
+			y0 = (float) y;
+		}
+		System.out.println(count);
+
+		List<RGB2> remaining = rgbs.stream().skip(count).collect(Collectors.toList());
+		Collections.shuffle(remaining);
+		drawLinear(remaining.iterator(), outData);
 	}
 
 	static class CompH implements Comparator<RGB2> {
@@ -181,6 +240,12 @@ public class AllRGB implements IImageProcessor {
 		@Override
 		public int compare(RGB2 o2, RGB2 o1) {
 			return Float.compare(o1.b+o1.s+(o1.h/36f), o2.b+o2.s+(o2.h/36f));
+		}
+	}
+	static class CompGreen implements Comparator<RGB2> {
+		@Override
+		public int compare(RGB2 o2, RGB2 o1) {
+			return Integer.compare(o1.rgb.green*2 - o1.rgb.blue - o1.rgb.red, o2.rgb.green*2 - o2.rgb.blue - o2.rgb.red);
 		}
 	}
 }
