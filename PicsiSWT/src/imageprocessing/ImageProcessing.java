@@ -45,12 +45,13 @@ public class ImageProcessing {
 		assert views != null : "views are null";
 		m_views = views;
 		
+		//a, b, c, g, i, r
 		m_menuItems.add(new ImageMenuItem("&Invert\tF1", SWT.F1, new Inverter()));
-		// TODO add here further image processing objects (they are inserted into the Image menu)
 		m_menuItems.add(new ImageMenuItem("RGBTo&Gray\tF2", SWT.F2, new RGBToGray()));
 		m_menuItems.add(new ImageMenuItem("GrayTo&Binary\tF3", SWT.F3, new GrayToBinary()));
 		m_menuItems.add(new ImageMenuItem("&Rotate\tF4", SWT.F4, new Rotate()));
 		m_menuItems.add(new ImageMenuItem("&AllRGB\tF5", SWT.F5, new AllRGB()));
+		m_menuItems.add(new ImageMenuItem("&CheckAllRGB\tShift+F5", SWT.SHIFT + SWT.F5, new CheckAllRGB()));
 	}
 	
 	public void createMenuItems(Menu menu) {
