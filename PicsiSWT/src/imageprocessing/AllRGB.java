@@ -88,7 +88,7 @@ public class AllRGB implements IImageProcessor {
 	@Override
 	public Image run(Image input, int imageType) {
 		final ImageData outData = new ImageData(4096, 4096, 24, input.getImageData().palette);
-		String[] options = new String[]{ "boring", "linear", "logarithmic spiral", "green" };
+		String[] options = new String[]{ "boring", "linear", "logarithmic spiral", "green", "pacman" };
 		int option = JOptionPane.showOptionDialog(null, "Choose the ImageType", "AllRGB", 0, JOptionPane.QUESTION_MESSAGE, null, options, "");
 
 		switch (option) {
@@ -103,12 +103,14 @@ public class AllRGB implements IImageProcessor {
 			case 1:
 			case 2:
 			case 3:
+			case 4:
 				List<RGB2> rgbs = new ArrayList<RGB2>(4096*4096);
 				for(int x = 0; x < 0x1000000; ++x){
 					rgbs.add(new RGB2(outData.palette.getRGB(x)));
 				}
 				switch (option) {
 					case 3:
+					case 4:
 						rgbs.sort(new CompGreen());
 						break;
 					default:
@@ -125,7 +127,8 @@ public class AllRGB implements IImageProcessor {
 						drawSpiral(it, outData);
 						break;
 					case 3:
-						drawCircle(rgbs, outData, 1000);
+					case 4:
+						drawCircle(rgbs, outData, 1000, option == 4);
 				}
 
 				break;
@@ -166,19 +169,19 @@ public class AllRGB implements IImageProcessor {
 		}
 	}
 
-	private void drawCircle(List<RGB2> rgbs, ImageData outData, int r){
+	private void drawCircle(List<RGB2> rgbs, ImageData outData, int r, boolean pac){
 		float m = 4096/2;
 		boolean first = true;
 		float x0 = 0, y0 = 0;
 		//randomize circle colors
 		Iterator<RGB2> it = rgbs.iterator();
 		if(r == 1000){
-			List<RGB2> rgbs2 = rgbs.stream().limit(3141380).collect(Collectors.toList());
+			List<RGB2> rgbs2 = rgbs.stream().limit(pac ? 2489836 : 3141380).collect(Collectors.toList());
 			Collections.shuffle(rgbs2);
 			it = rgbs2.iterator();
 		}
 		int count = 0;
-		for(double i = 0.0; i < 2*Math.PI+1 && it.hasNext(); i+=0.01){
+		for(double i = 0.0 + (pac ? 0.7 : 0); i + (pac ? 0.7 : 0) < 2*Math.PI+0.1 && it.hasNext(); i+=0.01){
 			double x = r*Math.cos(i) + m;
 			double y = r*Math.sin(i) + m;
 			if(first){
