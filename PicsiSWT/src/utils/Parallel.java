@@ -54,8 +54,8 @@ public class Parallel {
         for (Future<?> f : futures) {
         	try { 
         		f.get();
-		    } catch (InterruptedException | ExecutionException e) { 
-		    	System.out.println(e); 
+		    } catch (InterruptedException | ExecutionException e) {
+		    	e.printStackTrace();
 		    }
         }
 	    executor.shutdown();     
@@ -131,7 +131,7 @@ public class Parallel {
         	try { 
         		f.get();
 		    } catch (InterruptedException | ExecutionException e) { 
-		    	System.out.println(e); 
+		    	e.printStackTrace();
 		    }
         }
 	    executor.shutdown();     

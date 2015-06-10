@@ -1,5 +1,7 @@
 package utils;
 
+import imageprocessing.ImageProcessing;
+
 import javax.swing.JOptionPane;
 
 import org.eclipse.swt.graphics.ImageData;
@@ -160,10 +162,10 @@ public class Transformation {
 					u0 = (int)Math.floor(x);
 					v0 = (int)Math.floor(y);
 					//Interpolate between the following Pixels
-					RGB A = getRGB(inData, u0, v0);
-					RGB B = getRGB(inData, u0+1, v0);
-					RGB C = getRGB(inData, u0, v0+1);
-					RGB D = getRGB(inData, u0+1, v0+1);
+					RGB A = ImageProcessing.getRGB(inData, u0, v0);
+					RGB B = ImageProcessing.getRGB(inData, u0+1, v0);
+					RGB C = ImageProcessing.getRGB(inData, u0, v0+1);
+					RGB D = ImageProcessing.getRGB(inData, u0+1, v0+1);
 					//Bilinear interpolation
 					//TODO: Add alpha (was not required)
 					double a = x - (double)u0;
@@ -178,16 +180,6 @@ public class Transformation {
 					JOptionPane.showMessageDialog(null, "HELL NO!");
 					break;
 			}
-		}
-
-		private RGB getRGB(ImageData inData, int u, int v){
-			//Upper bound
-			u = u < inData.width ? u : inData.width - u - 1 + inData.width;
-			v = v < inData.height ? v : inData.height - v - 1 + inData.height; 
-			//Lower bound
-			u = Math.abs(u) % inData.width;
-			v = Math.abs(v) % inData.height;
-			return inData.palette.getRGB(inData.getPixel(u, v));
 		}
 
 		private RGB bilinear(RGB A, RGB B, double a){
