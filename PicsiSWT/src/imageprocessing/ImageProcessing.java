@@ -86,7 +86,13 @@ public class ImageProcessing {
 		return m_menuItems.get(i).m_process.isEnabled(m_views.getFirstimageType());
 	}
 
-	public static int clampRGB(int c){ return c < 0 ? 0 : (c > 255 ? 255 : c); }
+	public static int clamp(int c){ return c < 0 ? 0 : (c > 255 ? 255 : c); }
+	public static RGB clampRGB(RGB c){
+		c.red = clamp(c.red);
+		c.green = clamp(c.green);
+		c.blue = clamp(c.blue);
+		return c;
+	}
 	public static ImageData convolve(ImageData inData, double[][] filter){ //standard
 		return convolve(inData, filter, (int)Math.round((double)filter.length / 2.0), (int)Math.round((double)filter[0].length / 2.0), 1, 0);
 	}
@@ -117,7 +123,8 @@ public class ImageProcessing {
 						b += c.blue * H[y+middleY][x+middleX] + offset;
 					}
 				}
-				outData.setPixel(u, v, outData.palette.getPixel(new RGB((int)(Math.round(r)), (int)(Math.round(g)), (int)(Math.round(b)))));
+				
+				outData.setPixel(u, v, outData.palette.getPixel(new RGB(clamp((int)(Math.round(r))), clamp((int)(Math.round(g))), clamp((int)(Math.round(b))))));
 			}
 		});
 		return outData;
