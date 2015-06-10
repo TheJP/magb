@@ -20,7 +20,6 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.printing.*;
 import org.eclipse.swt.widgets.*;
 
-import utils.MRU;
 import files.Document;
 
 /**
@@ -37,7 +36,7 @@ public class MainWindow {
 	private Editor m_editor;
 	private String m_lastPath; // used to seed the file dialog
 	private Label m_statusLabel, m_zoomLabel;
-	private MenuItem m_editMenuItem, m_outputMenuItem;
+	private MenuItem m_editMenuItem;
 	private MRU m_mru;
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////7
@@ -97,15 +96,13 @@ public class MainWindow {
 			
 			// Label to show status and cursor location in image.
 			m_statusLabel = new Label(compo, SWT.NONE);
-			m_statusLabel.setText("");
-			data = new GridData (SWT.FILL, SWT.FILL, true, true);
+			data = new GridData(SWT.FILL, SWT.FILL, true, true);
 			m_statusLabel.setLayoutData(data);
 			
 			// Label to show zoom value
-			m_zoomLabel = new Label(compo, SWT.NONE);
-			m_zoomLabel.setText("Zoom");
-			data = new GridData (SWT.RIGHT, SWT.FILL, false, true);
-			data.widthHint = 50;
+			m_zoomLabel = new Label(compo, SWT.RIGHT);
+			data = new GridData(SWT.RIGHT, SWT.FILL, false, true);
+			data.widthHint = 100;
 			m_zoomLabel.setLayoutData(data);
 		}
 		
@@ -128,17 +125,28 @@ public class MainWindow {
 		if (args == null) {
 			m_statusLabel.setText("");
 		} else {
-			m_statusLabel.setText(PicsiSWT.createMsg("Image color at ({0,number,integer}, {1,number,integer}) - pixel {2,number,integer} [0x{3}] - is {4} [0x{5}] {6}", args));
+			m_statusLabel.setText(PicsiSWT.createMsg("Image color at ({0}, {1}) - pixel {2} [{3}] - is {4} [{5}] {6}", args));
 		}
 	}
 
-	public void showZoomFactor(float zoom) {
-		m_zoomLabel.setText("" + Math.round(zoom*100) + '%');
+	public void showImagePosition(Point pnt) {
+		if (pnt == null) {
+			m_statusLabel.setText("");
+		} else {
+			m_statusLabel.setText("(" + pnt.x + "," + pnt.y +")");
+		}
+	}
+	
+	public void showZoomFactor(float zoom1, float zoom2) {
+		if (m_views.isSynchronized() || !m_views.hasSecondView()) {
+			m_zoomLabel.setText("" + Math.round(zoom1*100) + '%');
+		} else {
+			m_zoomLabel.setText("" + Math.round(zoom1*100) + "% | " + Math.round(zoom2*100) + '%');
+		}
 	}
 	
 	public void toggleOutputWindow() {
-		m_outputMenuItem.setSelection(!m_outputMenuItem.getSelection());
-		m_views.split(m_outputMenuItem.getSelection());
+		m_views.split();
 	}
 	
 	public void showErrorDialog(String operation, String filename, Throwable e) {
@@ -167,13 +175,21 @@ public class MainWindow {
 		box.open();
 	}
 	
-	public static class StringInt {
+	public static class FileInfo {
 		public String filename;
 		public int filetype;
+		
+		public FileInfo(String name, int type) {
+			filename = name;
+			filetype = type;
+		}
 	}
 	
-	public StringInt chooseFileName() {
-		// Get the user to choose a file name and type to save.
+	/***
+	 * Get the user to choose a file name and type to save.
+	 * @return
+	 */
+	public FileInfo chooseFileName() {
 		FileDialog fileChooser = new FileDialog(m_shell, SWT.SAVE);
 		fileChooser.setFilterPath(m_lastPath);
 		fileChooser.setFilterExtensions(PicsiSWT.SAVE_FILTER_EXTENSIONS);
@@ -194,7 +210,7 @@ public class MainWindow {
 		if (filename == null)
 			return null;
 
-		// Figure out what file type the user wants saved.
+		// Figure out what file type the user wants.
 		//fileChooser.getFilterIndex();
 		int filetype = PicsiSWT.determineFileType(filename);
 		if (filetype == SWT.IMAGE_UNDEFINED) {
@@ -212,12 +228,44 @@ public class MainWindow {
 				return null;
 		}
 		
-		StringInt si = new StringInt();		
-		si.filename = filename;
-		si.filetype = filetype;
-		return si;
+		return new FileInfo(filename, filetype);		
 	}
 	
+	/***
+	 * Get the user to choose a file name and type to save.
+	 * @return
+	 */
+	public FileInfo chooseFileName(int filetype) {
+		// Figure out what file type the user wants.
+		//fileChooser.getFilterIndex();
+		if (filetype == SWT.IMAGE_UNDEFINED) {
+			MessageBox box = new MessageBox(m_shell, SWT.ICON_ERROR);
+			box.setMessage(PicsiSWT.createMsg("Unknown file extension: {0}\nPlease use bmp, gif, ico, jfif, jpeg, jpg, pbm, pgm, png, ppm, tif, or tiff.", ""));
+			box.open();
+			return null;
+		}
+		
+		int filterIndex = PicsiSWT.determineFilterIndex(PicsiSWT.fileTypeString(filetype));
+		FileDialog fileChooser = new FileDialog(m_shell, SWT.SAVE);
+		fileChooser.setFilterPath(m_lastPath);		
+		fileChooser.setFilterExtensions(new String[]{PicsiSWT.SAVE_FILTER_EXTENSIONS[filterIndex]});
+		fileChooser.setFilterNames(new String[]{PicsiSWT.SAVE_FILTER_NAMES[filterIndex]});
+				
+		String filename = fileChooser.open();
+		m_lastPath = fileChooser.getFilterPath();
+		if (filename == null)
+			return null;
+
+		if (new java.io.File(filename).exists()) {
+			MessageBox box = new MessageBox(m_shell, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
+			box.setMessage(PicsiSWT.createMsg("Overwrite {0}?", filename));
+			if (box.open() == SWT.CANCEL)
+				return null;
+		}
+		
+		return new FileInfo(filename, filetype);		
+	}
+
 	public boolean updateFile(String filename) {
 		boolean retValue = true;
 		Cursor waitCursor = m_display.getSystemCursor(SWT.CURSOR_WAIT);
@@ -237,7 +285,11 @@ public class MainWindow {
 		m_shell.setCursor(null);
 		return retValue;
 	}
-	
+
+	public void setEnabledMenu(boolean enabled) {
+		Menu menuBar = m_shell.getMenuBar();
+		if (menuBar != null) menuBar.setEnabled(enabled);
+	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////7
 	// private methods section
@@ -342,7 +394,7 @@ public class MainWindow {
 		
 		new MenuItem(fileMenu, SWT.SEPARATOR);
 		
-		// Image -> Edit...
+		// File -> Edit...
 		m_editMenuItem = new MenuItem(fileMenu, SWT.PUSH);
 		m_editMenuItem.setText("&Edit...\tCtrl+E");
 		m_editMenuItem.setAccelerator(SWT.MOD1 + 'E');
@@ -480,6 +532,8 @@ public class MainWindow {
 	private void createWindowMenu(Menu menuBar) {
 		final int AUTO_ZOOM = 0;
 		final int ORIGINAL_SIZE = 1;
+		final int SYNCHRONIZE = 2;
+		final int SHOWOUTPUT = 4;
 		
 		MenuItem item = new MenuItem(menuBar, SWT.CASCADE);
 		item.setText("&Window");
@@ -491,6 +545,10 @@ public class MainWindow {
 				menuItems[AUTO_ZOOM].setEnabled(!m_views.isEmpty());
 				menuItems[AUTO_ZOOM].setSelection(m_views.hasAutoZoom());
 				menuItems[ORIGINAL_SIZE].setEnabled(!m_views.isEmpty());
+				menuItems[SYNCHRONIZE].setEnabled(!m_views.isEmpty());
+				menuItems[SYNCHRONIZE].setSelection(m_views.isSynchronized());
+				menuItems[SHOWOUTPUT].setEnabled(!m_views.isEmpty());
+				menuItems[SHOWOUTPUT].setSelection(m_views.hasSecondView());
 			}
 		});
 
@@ -519,16 +577,27 @@ public class MainWindow {
 			}
 		});
 
+		// Window -> Synchronize
+		item = new MenuItem(windowMenu, SWT.CHECK);
+		item.setText("&Synchronize");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent event) {
+				assert !m_views.isEmpty() : "menu item must be grayed";
+				MenuItem[] menuItems = windowMenu.getItems();
+				m_views.synchronize();
+				menuItems[SYNCHRONIZE].setSelection(m_views.isSynchronized());
+			}
+		});
+
 		new MenuItem(windowMenu, SWT.SEPARATOR);
 
 		// Window -> Show Output
-		m_outputMenuItem = new MenuItem(windowMenu, SWT.CHECK);
-		m_outputMenuItem.setText("Sho&w Output\tCtrl+W");
-		m_outputMenuItem.setAccelerator(SWT.MOD1 + 'W');
-		m_outputMenuItem.addSelectionListener(new SelectionAdapter() {
+		item = new MenuItem(windowMenu, SWT.CHECK);
+		item.setText("Sho&w Output\tCtrl+W");
+		item.setAccelerator(SWT.MOD1 + 'W');
+		item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
-				MenuItem item = (MenuItem)event.widget;
-				m_views.split(item.getSelection());
+				m_views.split();
 			}
 		});
 	}
@@ -557,7 +626,7 @@ public class MainWindow {
 	}
 	
 	private boolean saveFile(boolean saveAs) {
-		StringInt si = null;
+		FileInfo si = null;
 		
 		if (saveAs || m_views.getDocument(false).getFileName() == null) {
 			si = chooseFileName();

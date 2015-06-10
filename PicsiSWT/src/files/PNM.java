@@ -1,6 +1,7 @@
 package files;
 import main.PicsiSWT;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.PaletteData;
@@ -569,4 +570,20 @@ public class PNM implements IImageFile {
 		}
 	}
 	
+	public static int fileType(String header) {
+		if (header.charAt(0) == 'P') {
+			switch(header.charAt(1)) {
+			case '1':
+			case '4':
+				return PicsiSWT.IMAGE_PBM;
+			case '2':
+			case '5':
+				return PicsiSWT.IMAGE_PGM;
+			case '3':
+			case '6':
+				return PicsiSWT.IMAGE_PPM;
+			}
+		}
+		return SWT.IMAGE_UNDEFINED;
+	}
 }

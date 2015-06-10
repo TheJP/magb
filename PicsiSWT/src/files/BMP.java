@@ -36,7 +36,7 @@ public class BMP implements IImageFile {
 	@Override
 	public void displayTextOfBinaryImage(Image image, JTextArea text) {
 		ImageData imageData = image.getImageData();
-		int imageType = PicsiSWT.determineimageType(imageData);
+		int imageType = PicsiSWT.determineImageType(imageData);
 		
 		switch(imageType) {
 		case PicsiSWT.IMAGE_TYPE_BINARY:

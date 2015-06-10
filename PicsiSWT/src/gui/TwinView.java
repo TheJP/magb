@@ -19,8 +19,8 @@ public class TwinView extends Composite {
 	
 	private Document m_doc1, m_doc2;
 	private View m_view1, m_view2;
-	private float m_zoom = 1.0f;
 	private boolean m_autoZoom = true;
+	private boolean m_synchronized = false;
 	
 	public TwinView(MainWindow mainWnd, Composite parent, int style) {
 		super(parent, style);
@@ -77,20 +77,10 @@ public class TwinView extends Composite {
 		return m_view2 != null;
 	}
 	
-	public void zoom(float f) {
-		float zoom = m_zoom*f;
-		if (zoom > 100) {
-			zoom = 100;
-		} else if (zoom < 0.01f) {
-			zoom = 0.01f;
-		}
-		setZoom(zoom);
+	public boolean isSynchronized() {
+		return m_synchronized;
 	}
 	
-	public float getZoom() {
-		return m_zoom;
-	}
-
 	public Image getFirstImage() {
 		return m_view1.getImage();
 	}
@@ -113,7 +103,7 @@ public class TwinView extends Composite {
 	public void showImageInSecondView(Image image) {
 		if (image == null) return;
 		
-		if (!hasSecondView()) m_mainWnd.toggleOutputWindow();
+		if (!hasSecondView()) split();
 		if (hasSecondView()) {
 			m_view2.setImage(image, m_view1.getImage() != m_view2.getImage());
 			layout();
@@ -121,18 +111,18 @@ public class TwinView extends Composite {
 		}
 	}
 	
-	public void split(boolean split) {
-		if (split && !hasSecondView()) {
-			// create second view
-			m_doc2 = new Document();
-			m_view2 = new View(this);
-			m_view2.setImage(m_view1.getImage(), false);
-		} else if (hasSecondView()) {
+	public void split() {
+		if (hasSecondView()) {
 			// destroy second view
 			m_view2.setImage(null, m_view1.getImage() != m_view2.getImage());
 			m_view2.dispose();
 			m_view2 = null;
 			m_doc2 = null;
+		} else {
+			// create second view
+			m_doc2 = new Document();
+			m_view2 = new View(this);
+			m_view2.setImage(m_view1.getImage(), false);
 		}
 		layout();		
 	}
@@ -151,34 +141,72 @@ public class TwinView extends Composite {
 	public void refresh() {
 		setCursor(getDisplay().getSystemCursor(SWT.CURSOR_CROSS));
 		if (m_autoZoom) setAutoZoom(true);
-		else setZoom(m_zoom);
+		else updateZoom(m_view1);
 	}
 	
 	public void setAutoZoom(boolean b) {
 		m_autoZoom = b;
 		if (m_autoZoom) {
 			// compute minimal zoom factor
-			
-			setZoom(m_view1.computeBestZoomFactor());
+			m_view1.computeBestZoomFactor();
+			if (hasSecondView()) m_view2.computeBestZoomFactor();
+			updateZoom(m_view1);
 		}
 	}
 	
 	public void zoom100() {
 		setAutoZoom(false);
-		setZoom(1.0f);
+		m_view1.setZoom(1.0f);
+		if (hasSecondView()) m_view2.setZoom(1.0f);
+		updateZoom(m_view1);
+	}
+	
+	public void updateZoom(View source) {
+		boolean v2 = hasSecondView();
+		
+		if (m_synchronized) {
+			View target = (source == m_view1) ? m_view2 : m_view1;
+			if (source != null && target != null) target.setZoom(source.getZoom());
+		}
+		m_mainWnd.showZoomFactor(m_view1.getZoom(), (v2) ? m_view2.getZoom() : 0);
+		
+		m_view1.updateScrollBars();
+		if (v2) m_view2.updateScrollBars();
 	}
 	
 	public void setCursor(Cursor cursor) {
 		m_view1.setCursor(cursor);
-		if (m_view2 != null) m_view2.setCursor(cursor);
+		if (hasSecondView()) m_view2.setCursor(cursor);
 	}
 	
-	private void setZoom(float zoom) {
-		m_zoom = zoom;
-		
-		m_mainWnd.showZoomFactor(m_zoom);
-		
-		m_view1.updateScrollBars();
-		if (m_view2 != null) m_view2.updateScrollBars();
+	public void synchronize() {
+		if (m_synchronized) {
+			m_synchronized = false;
+		} else {
+			if (!hasSecondView()) split();
+			m_synchronized = true;
+		}
+		updateZoom(m_view1);
 	}
+	
+	public void synchronizeHorizontally(View view, int x) {
+		if (m_synchronized) {
+			if (m_view1 == view) {
+				if (hasSecondView()) m_view2.scrollHorizontally(x);
+			} else {
+				m_view1.scrollHorizontally(x);
+			}
+		}
+	}
+	
+	public void synchronizeVertically(View view, int y) {
+		if (m_synchronized) {
+			if (m_view1 == view) {
+				if (hasSecondView()) m_view2.scrollVertically(y);
+			} else {
+				m_view1.scrollVertically(y);
+			}
+		}
+	}
+	
 }

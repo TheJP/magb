@@ -1,7 +1,7 @@
 package gui;
 import files.Document;
 import files.PNM;
-import gui.MainWindow.StringInt;
+import gui.MainWindow.FileInfo;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -14,6 +14,8 @@ import java.io.IOException;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import main.PicsiSWT;
 
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
@@ -121,11 +123,15 @@ public class Editor extends JFrame {
 	
 	private void saveFile(boolean createNew) {
 		m_save = true;
-		if (createNew) {
-			// this Swing thread doesn't have direct access to SWT display thread, hence we need syncEcec
+		
+		// determine file type
+		int filetype = PNM.fileType(m_textPane.getText());
+		
+		if (createNew || (m_path != null && filetype != PicsiSWT.determineFileType(m_path))) {
+			// this Swing thread doesn't have direct access to SWT display thread, hence we need syncExec
 			Display.getDefault().syncExec(new Runnable() {
 			    public void run() {
-					StringInt si = m_mainWnd.chooseFileName();
+					FileInfo si = m_mainWnd.chooseFileName(filetype);
 					if (si != null) {
 						m_path = si.filename;
 					} else {
@@ -148,7 +154,7 @@ public class Editor extends JFrame {
 				
 				setTitle(m_path);
 				
-				// this Swing thread doesn't have direct access to SWT display thread, hence we need syncEcec
+				// this Swing thread doesn't have direct access to SWT display thread, hence we need syncExec
 				Display.getDefault().syncExec(new Runnable() {
 				    public void run() {
 						m_mainWnd.updateFile(m_path);

@@ -2,12 +2,14 @@
 
 package main;
 import gui.MainWindow;
+import gui.TwinView;
 
 import java.text.MessageFormat;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
@@ -41,7 +43,7 @@ public class PicsiSWT {
 	public static final int IMAGE_TYPE_INDEXED = 4;
 
 	public static final String APP_NAME = "FHNW Picsi SWT";
-	public static final String APP_VERSION = "1.2.2015.05";
+	public static final String APP_VERSION = "1.4.2015.22";
 	
 	public static Shell s_shell;
 	
@@ -138,7 +140,7 @@ public class PicsiSWT {
 		return formatter.format(new Object[]{arg});
 	}
 
-	public static int determineimageType(ImageData imageData) {
+	public static int determineImageType(ImageData imageData) {
 		if (imageData.depth == 1) {
 			return PicsiSWT.IMAGE_TYPE_BINARY;
 		} else {
@@ -160,6 +162,15 @@ public class PicsiSWT {
 				}
 				return PicsiSWT.IMAGE_TYPE_INDEXED;
 			}
+		}
+	}
+	
+	public static TwinView getTwinView() {
+		Control c = s_shell.getChildren()[0];
+		if (c instanceof TwinView) {
+			return (TwinView)c;
+		} else {
+			return null;
 		}
 	}
 }

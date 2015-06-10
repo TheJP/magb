@@ -30,6 +30,7 @@ public class View extends Canvas {
 	private ImageData m_imageData;
 	private int m_imageType;
 	private PrinterData m_printerData;
+	private float m_zoom = 1.0f;
 	
 	public View(TwinView compo) {
 		super(compo, SWT.V_SCROLL | SWT.H_SCROLL | SWT.NO_REDRAW_RESIZE | SWT.NO_BACKGROUND);
@@ -52,21 +53,9 @@ public class View extends Canvas {
 		horizontal.setEnabled(false);
 		horizontal.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
-				if (m_image != null) {
-					Rectangle canvasBounds = getClientArea();
-					int width = zoomedWidth();
-					int height = zoomedHeight();
-					if (width > canvasBounds.width) {
-						// Only scroll if the image is bigger than the canvas.
-						int x = -((ScrollBar)event.widget).getSelection();
-						if (x + width < canvasBounds.width) {
-							// Don't scroll past the end of the image.
-							x = canvasBounds.width - width;
-						}
-						scroll(x, m_scrollPosY, m_scrollPosX, m_scrollPosY, width, height, false);
-						m_scrollPosX = x;
-					}
-				}
+				int x = -((ScrollBar)event.widget).getSelection();
+				scrollHorizontally(x);
+				m_twins.synchronizeHorizontally(View.this, x);
 			}
 		});
 		ScrollBar vertical = getVerticalBar();
@@ -75,21 +64,9 @@ public class View extends Canvas {
 		vertical.setEnabled(false);
 		vertical.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
-				if (m_image != null) {
-					Rectangle canvasBounds = getClientArea();
-					int width = zoomedWidth();
-					int height = zoomedHeight();
-					if (height > canvasBounds.height) {
-						// Only scroll if the image is bigger than the canvas.
-						int y = -((ScrollBar)event.widget).getSelection();
-						if (y + height < canvasBounds.height) {
-							// Don't scroll past the end of the image.
-							y = canvasBounds.height - height;
-						}
-						scroll(m_scrollPosX, y, m_scrollPosX, m_scrollPosY, width, height, false);
-						m_scrollPosY = y;
-					}
-				}
+				int y = -((ScrollBar)event.widget).getSelection();
+				scrollVertically(y);
+				m_twins.synchronizeVertically(View.this, y);
 			}
 		});
 		
@@ -105,6 +82,7 @@ public class View extends Canvas {
 		});
 		addMouseMoveListener(new MouseMoveListener() {
 			public void mouseMove(MouseEvent event) {
+				View.this.setFocus();
 				if (m_image != null) {
 					m_twins.m_mainWnd.showColorForPixel(getPixelInfoAt(event.x - m_scrollPosX,  event.y - m_scrollPosY));
 				}
@@ -115,9 +93,9 @@ public class View extends Canvas {
 				if (m_image != null && !m_twins.hasAutoZoom()) {
 					//System.out.println("" + event.x + " " + event.y + " " + event.count);
 					if (event.count < 0) {
-						m_twins.zoom(1.5f);
+						zoom(1.5f);
 					} else if (event.count > 0) {
-						m_twins.zoom(1/1.5f);
+						zoom(1/1.5f);
 					}
 				}
 			}
@@ -130,14 +108,32 @@ public class View extends Canvas {
 		return m_imageData.width*10 < m_imageData.height*16;
 	}
 	
-	public float computeBestZoomFactor() {
+	public float getZoom() {
+		return m_zoom;
+	}
+
+	public void setZoom(float f) {
+		m_zoom = f;
+	}
+	
+	private void zoom(float f) {
+		m_zoom *= f;
+		if (m_zoom > 100) {
+			m_zoom = 100;
+		} else if (m_zoom < 0.01f) {
+			m_zoom = 0.01f;
+		}
+		m_twins.updateZoom(this);
+	}
+	
+	public void computeBestZoomFactor() {
 		assert m_imageData != null : "m_imageData is null";
 
 		Rectangle canvasBounds = getClientArea();
 		float xFactor = (float)canvasBounds.width/m_imageData.width;
 		float yFactor = (float)canvasBounds.height/m_imageData.height;
 		
-		return Math.min(xFactor, yFactor);
+		m_zoom = Math.min(xFactor, yFactor);
 	}
 	
 	public PrinterData getPrinterData() {
@@ -159,13 +155,49 @@ public class View extends Canvas {
 		m_image = image;
 		if (m_image != null) {
 			m_imageData = image.getImageData();
-			m_imageType = PicsiSWT.determineimageType(m_imageData);
+			m_imageType = PicsiSWT.determineImageType(m_imageData);
 		} else {
 			m_imageData = null;
 		}
 		updateScrollBars();
 	}
 	
+	public void scrollHorizontally(int x) {
+		if (m_image != null) {
+			Rectangle canvasBounds = getClientArea();
+			int width = zoomedWidth();
+			int height = zoomedHeight();
+			if (width > canvasBounds.width) {
+				// Only scroll if the image is bigger than the canvas.
+				if (x + width < canvasBounds.width) {
+					// Don't scroll past the end of the image.
+					x = canvasBounds.width - width;
+				}
+				scroll(x, m_scrollPosY, m_scrollPosX, m_scrollPosY, width, height, false);
+				getHorizontalBar().setSelection(-x); // place scroll bar
+				m_scrollPosX = x;
+			}
+		}
+	}
+	
+	public void scrollVertically(int y) {
+		if (m_image != null) {
+			Rectangle canvasBounds = getClientArea();
+			int width = zoomedWidth();
+			int height = zoomedHeight();
+			if (height > canvasBounds.height) {
+				// Only scroll if the image is bigger than the canvas.
+				if (y + height < canvasBounds.height) {
+					// Don't scroll past the end of the image.
+					y = canvasBounds.height - height;
+				}
+				scroll(m_scrollPosX, y, m_scrollPosX, m_scrollPosY, width, height, false);
+				getVerticalBar().setSelection(-y); // place scroll bar
+				m_scrollPosY = y;
+			}
+		}
+	}
+
 	public void updateScrollBars() {
 		// Set the max and thumb for the image canvas scroll bars.
 		ScrollBar horizontal = getHorizontalBar();
@@ -208,10 +240,8 @@ public class View extends Canvas {
 	public Object[] getPixelInfoAt(int x, int y) {
 		if (m_image == null) return null;
 		
-		float zoom = m_twins.getZoom();
-		
-		x = (int)(x/zoom);
-		y = (int)(y/zoom);
+		x = client2ImageX(x);
+		y = client2ImageY(y);
 		
 		if (x >= 0 && x < m_imageData.width && y >= 0 && y < m_imageData.height) {
 			int pixel = m_imageData.getPixel(x, y);
@@ -223,6 +253,7 @@ public class View extends Canvas {
 				alphaValue = m_imageData.getAlpha(x, y);
 			}
 			String rgbMessageFormat = (hasAlpha) ? "RGBA '{'{0}, {1}, {2}, {3}'}'" : "RGB '{'{0}, {1}, {2}'}'";
+			String rgbHexMessageFormat = (hasAlpha) ? "{0}, {1}, {2}, {3}" : "{0}, {1}, {2}";
 			Object[] rgbArgs = {
 					Integer.toString(rgb.red),
 					Integer.toString(rgb.green),
@@ -241,11 +272,27 @@ public class View extends Canvas {
 					new Integer(pixel),
 					Integer.toHexString(pixel),
 					PicsiSWT.createMsg(rgbMessageFormat, rgbArgs),
-					PicsiSWT.createMsg(rgbMessageFormat, rgbHexArgs),
+					PicsiSWT.createMsg(rgbHexMessageFormat, rgbHexArgs),
 					(pixel == m_imageData.transparentPixel) ? "(transparent)" : ""};
 			return args;
 		}
 		return null;
+	}
+	
+	int client2ImageX(int x) {
+		return Math.round((x - m_scrollPosX)/m_zoom);
+	}
+	
+	int client2ImageY(int y) {
+		return Math.round((y - m_scrollPosY)/m_zoom);
+	}
+	
+	int client2Image(int d) {
+		return Math.round(d/m_zoom);
+	}
+	
+	int image2Client(int d) {
+		return Math.round(d*m_zoom);
 	}
 	
 	private void paint(PaintEvent event) {		
@@ -272,21 +319,13 @@ public class View extends Canvas {
 				0,
 				m_imageData.width,
 				m_imageData.height,
-				m_scrollPosX + m_imageData.x,
-				m_scrollPosY + m_imageData.y,
+				m_scrollPosX,
+				m_scrollPosY,
 				w,
 				h);		
 		}
 	}
 	
-	private int zoomedWidth() {
-		return (m_image == null) ? 0 : Math.round(m_twins.getZoom()*m_imageData.width);
-	}
-
-	private int zoomedHeight() {
-		return (m_image == null) ? 0 : Math.round(m_twins.getZoom()*m_imageData.height);
-	}
-
 	public Throwable print(Display display) {
 		ImageData imageData = m_image.getImageData();
 		
@@ -323,4 +362,12 @@ public class View extends Canvas {
 		return null;
 	}
 	
+	private int zoomedWidth() {
+		return (m_image == null) ? 0 : image2Client(m_imageData.width);
+	}
+
+	private int zoomedHeight() {
+		return (m_image == null) ? 0 : image2Client(m_imageData.height);
+	}
+
 }

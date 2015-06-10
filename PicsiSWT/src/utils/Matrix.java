@@ -133,7 +133,7 @@ public class Matrix {
 		if (m_data[2][0] == 0 && m_data[2][1] == 0 && m_data[2][2] == 1) {
 			double den = m_data[0][0]*m_data[1][1] - m_data[0][1]*m_data[1][0];
 			assert den != 0 : "matrix is singular";
-
+			
 			return new Matrix(new double[][] {
 				{ m_data[1][1]/den,-m_data[0][1]/den, (m_data[0][1]*m_data[1][2] - m_data[0][2]*m_data[1][1])/den }, 
 				{-m_data[1][0]/den, m_data[0][0]/den, (m_data[0][2]*m_data[1][0] - m_data[0][0]*m_data[1][2])/den }, 
