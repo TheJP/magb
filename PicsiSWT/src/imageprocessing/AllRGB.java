@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import javax.swing.JOptionPane;
@@ -23,11 +22,11 @@ public class AllRGB implements IImageProcessor {
 		return true;
 	}
 
-	private void setPixel(ImageData data, int x, int y, int pixel){
-		if(x >= 0 && x < data.width && y >= 0 && y < data.height){
-			data.setPixel(x, y, 0xffffff);
-		}
-	}
+//	private void setPixel(ImageData data, int x, int y, int pixel){
+//		if(x >= 0 && x < data.width && y >= 0 && y < data.height){
+//			data.setPixel(x, y, 0xffffff);
+//		}
+//	}
 
 	static class Triangle {
 

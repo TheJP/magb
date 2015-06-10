@@ -1,6 +1,9 @@
 package utils;
 
+import javax.swing.JOptionPane;
+
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.RGB;
 
 /**
  * class that represents a 3x3 affine transformation
@@ -134,6 +137,68 @@ public class Transformation {
 		return new Transformation(r);
 	}
 
+	public static enum Strategy {
+		NearestNeighbor,
+		Bilinear,
+		Perfect;
+
+		public void interpolate(ImageData outData, ImageData inData, int u, int v, double x, double y){
+			int u0, v0;
+			switch (this) {
+				case NearestNeighbor:
+					u0 = (int)Math.round(x);
+					v0 = (int)Math.round(y);
+					if(u0 >= 0 && u0 < outData.width && v0 >= 0 && v0 < outData.height){
+						outData.setPixel(u, v, inData.getPixel(u0, v0));
+						outData.setAlpha(u, v, inData.getAlpha(u0, v0));
+					}else{
+						outData.setPixel(u, v, 0);
+						outData.setAlpha(u, v, 1);
+					}
+					break;
+				case Bilinear:
+					u0 = (int)Math.floor(x);
+					v0 = (int)Math.floor(y);
+					//Interpolate between the following Pixels
+					RGB A = getRGB(inData, u0, v0);
+					RGB B = getRGB(inData, u0+1, v0);
+					RGB C = getRGB(inData, u0, v0+1);
+					RGB D = getRGB(inData, u0+1, v0+1);
+					//Bilinear interpolation
+					//TODO: Add alpha (was not required)
+					double a = x - (double)u0;
+					RGB E = bilinear(A, B, a);
+					RGB F = bilinear(C, D, a);
+					double b = y - (double)v0;
+					RGB G = bilinear(E, F, b);
+					//Set output
+					outData.setPixel(u, v, outData.palette.getPixel(G));
+					break;
+				case Perfect:
+					JOptionPane.showMessageDialog(null, "HELL NO!");
+					break;
+			}
+		}
+
+		private RGB getRGB(ImageData inData, int u, int v){
+			//Upper bound
+			u = u < inData.width ? u : inData.width - u - 1 + inData.width;
+			v = v < inData.height ? v : inData.height - v - 1 + inData.height; 
+			//Lower bound
+			u = Math.abs(u) % inData.width;
+			v = Math.abs(v) % inData.height;
+			return inData.palette.getRGB(inData.getPixel(u, v));
+		}
+
+		private RGB bilinear(RGB A, RGB B, double a){
+			return new RGB(
+				(int)(A.red   + a * (B.red   - A.red)),
+				(int)(A.green + a * (B.green - A.green)),
+				(int)(A.blue  + a * (B.blue  - A.blue))
+			);
+		}
+	}
+
 	/**
 	 * Transforms the given image.
 	 * @param inData
@@ -141,6 +206,17 @@ public class Transformation {
 	 * @return
 	 */
 	public ImageData targetToSourceMapping(ImageData inData){
+		//Compatibility to older versions
+		return targetToSourceMapping(inData, Strategy.NearestNeighbor);
+	}
+
+	/**
+	 * Transforms the given image.
+	 * @param inData
+	 * @param t
+	 * @return
+	 */
+	public ImageData targetToSourceMapping(ImageData inData, Strategy strategy){
 		final ImageData outData = (ImageData)inData.clone();
 		final int halfx = outData.width / 2;
 		final int halfy = outData.height / 2;
@@ -153,15 +229,7 @@ public class Transformation {
 			for (int u=0; u < outData.width; ++u) {
 				double[] p = { u, v, 1 };
 				p = t2.multiply(p);
-				int x = (int)Math.round(p[0]);
-				int y = (int)Math.round(p[1]);
-				if(x >= 0 && x < outData.width && y >= 0 && y < outData.height){
-					outData.setPixel(u, v, inData.getPixel(x, y));
-					outData.setAlpha(u, v, inData.getAlpha(x, y));
-				}else{
-					outData.setPixel(u, v, 0);
-					outData.setAlpha(u, v, 1);
-				}
+				strategy.interpolate(outData, inData, u, v, p[0], p[1]);
 			}
 		});
 		return outData;
